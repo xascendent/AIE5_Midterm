@@ -70,6 +70,7 @@ Deliverables
 
 ---
 ### OTHER NOTES
+
 Code Breakdown:  
 We plan to create a folder to store some of our PDFs and possibly images. For our midterm, we will experiment with a multimodal vector store.
 ---
