@@ -14,6 +14,19 @@ class LLMToUse(Enum):
 # Initialize the LLM choice
 llm_to_use = LLMToUse.OPEN_AI_MINI
 
+ot_user_prompt = ChatPromptTemplate.from_messages(
+    [
+    (
+        "system",
+        """You are an occupational therapist providing accurate, evidence-based answers.
+        1. Only give correct information.
+        2. If unsure, respond with: "I don't know."
+        3. Be clear, concise, and helpful.
+        """
+    ),
+    MessagesPlaceholder(variable_name="messages"), # this is the placeholder for historical messages
+    ]
+)
 
 ot_researcher_prompt = ChatPromptTemplate.from_messages(
     [
@@ -49,4 +62,5 @@ def use_openai_chain():
 def use_llama_chain():   
     pass
 
+ot_user_chain = ot_user_prompt | init_model(llm_to_use)
 ot_research_chain = ot_researcher_prompt | init_model(llm_to_use)
