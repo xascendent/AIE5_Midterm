@@ -32,7 +32,7 @@ This solution will provide an intuitive chatbot interface that allows the occupa
 
 Tooling Choices:
 
-a. `LLM` – OpenAI's GPT-4o model will be used initially for its state-of-the-art performance in natural language understanding and generation. While the assignment may require fine-tuning a model later, GPT-4o provides a solid proof of concept due to its reliability and ease of integration.
+a. `LLM` – OpenAI's GPT-4o model will be used initially for its state-of-the-art performance in natural language understanding and generation. While the assignment may require fine-tuning a model later, GPT-4o-mini provides a solid proof of concept due to its reliability and ease of integration.
 
 b. `Embedding Model` – OpenAI's embedding model will be used to generate embeddings for text and images, ensuring semantic search capabilities across both modalities.
 
