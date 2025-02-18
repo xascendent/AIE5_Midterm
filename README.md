@@ -73,8 +73,9 @@ Deliverables
 
 
 ---
-### OTHER NOTES
+### Random thoughts for the project.
 
 Code Breakdown:  
 We plan to create a folder to store some of our PDFs and possibly images. For our midterm, we will experiment with a multimodal vector store.
+Might have a flag that can be set that will invoke RAGAS on the pipeline.  Wondering how this might play out with hugging face env thought.. might have to setup a chatbot interface and try or can it just init my main.py and I can see? not sure.. prez not sure.
 ---
