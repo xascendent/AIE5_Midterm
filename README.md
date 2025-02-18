@@ -16,6 +16,7 @@ powershell commands:
 - Let vsCode control the git
 
 ---
+`possible work flow:`
 
 ![Node Layout](node_layout.png)
 
