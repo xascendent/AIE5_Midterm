@@ -7,6 +7,7 @@ import json
 GENERATE = "generate_node"
 RESEARCH = "research_node"
 POST_PROCESS = "postprocess_node"
+MAX_ITERATIONS = 3
 
 
 def generation_node(state: Sequence[BaseMessage]):
@@ -20,7 +21,7 @@ def postprocess_node(state: Sequence[BaseMessage]):
     return ot_post_process_chain.invoke({"messages": [HumanMessage(content=latest_message)]})
 
 def should_continue(state: List[BaseMessage]):
-    if len(state) > 6:
+    if len(state) > MAX_ITERATIONS:
         return POST_PROCESS
     elif state:  # Ensure there's always a defined exit path
         return RESEARCH
@@ -61,3 +62,6 @@ if __name__ == '__main__':
     last_message = response[-1].content
     print(f'{last_message}')
   
+    print(f"--------------------")
+    second_to_last_message = response[-2].content
+    print(f'{second_to_last_message}')
