@@ -17,6 +17,9 @@ powershell commands:
 
 ---
 
+![Node Layout](node_layout.png)
+
+---
 ## Task 1: 
 
 **Problem Statement:**  
