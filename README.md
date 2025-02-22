@@ -6,6 +6,29 @@ https://journals.lww.com/iopt/fulltext/2018/50040/effect_of_hand_splinting_versu
 Homework location:
 https://www.notion.so/Session-11-Midterm-189cd547af3d800d8407f74826756268#189cd547af3d81c2b2fbc0573761ab21
 
+ What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow for adults between the ages of 30-50 years old according to peer reviewed journal articles published in the last 5 years? 
+
+break out like this:
+Research indicates several therapeutic activities and exercises effective for treating chronic tennis elbow (lateral epicondylitis) in adults aged 30-50. Here are the most commonly supported interventions based on evidence from peer-reviewed studies published in the last five years:
+
+1. **Eccentric Exercises**: Eccentric strengthening exercises targeting the wrist extensors have been shown to effectively reduce pain and improve function.
+
+2. **Isometric Exercises**: Isometric exercises can help build strength in the forearm muscles without increasing pain, making them suitable for acute phases of recovery.
+
+3. **Stretching**: Gentle stretching of the wrist extensors improves flexibility and alleviates tension, contributing to pain relief.
+
+4. **Manual Therapy**: Soft tissue mobilization and joint mobilization techniques may enhance outcomes, especially when combined with exercise.
+
+5. **Ultrasound Therapy**: While research on therapeutic ultrasound shows mixed results, some studies support its use alongside exercise therapy for symptom relief.
+
+6. **Taping and Bracing**: Kinesiology tape or forearm braces can provide support, reducing strain during activities and allowing for better engagement in therapeutic exercises.
+
+7. **Functional Activities**: Gradual return to specific functional tasks, customized to the individual's daily activities, can improve physical readiness and psychological well-being.
+
+Combining these interventions in a comprehensive treatment plan, tailored to the individual's specific condition and needs, is crucial for effective management of chronic tennis elbow. Always consider consulting the latest literature or a healthcare professional for updated strategies.
+
+
+
 powershell commands:
 - create a git repo in github have the creator add the python git ignore file
 - uv init src_midterm
@@ -78,4 +101,6 @@ Deliverables
 Code Breakdown:  
 We plan to create a folder to store some of our PDFs and possibly images. For our midterm, we will experiment with a multimodal vector store.
 Might have a flag that can be set that will invoke RAGAS on the pipeline.  Wondering how this might play out with hugging face env thought.. might have to setup a chatbot interface and try or can it just init my main.py and I can see? not sure.. prez not sure.
+
+Change directions. maybe we want to take the top 5 results then have the LLM pick the top one that is the most related read the page push it to the vector store.  However, we will want to check the vector store to see if the data is already there.  so might need SQL to do this to keep a list of the links that we already pulled?
 ---

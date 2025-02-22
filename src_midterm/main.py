@@ -52,8 +52,7 @@ print(graph_image) # we can copy the output to https://mermaid.live/ to get the 
 
 if __name__ == '__main__':
     print ("Ready player one")
-    inputs = HumanMessage(content=""""I have a 10-year-old patient with autism who is struggling with communication. The physician suspects a thumb issue, but the patient has sensory sensitivities to hand contact. 
-                          I need suggestions for managing this, especially if a thumb splint is necessary."
+    inputs = HumanMessage(content="""" What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow for adults between the ages of 30-50 years old according to peer reviewed journal articles published in the last 5 years? "
                           """)
     response = graph.invoke(inputs)
     print(f"{response}")
