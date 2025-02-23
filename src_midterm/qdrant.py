@@ -2,7 +2,7 @@ import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import ScoredPoint, Filter, FieldCondition, MatchValue, PointStruct, Distance, VectorParams
 from utils_openai import UtilityOpenAI, GptEmbeddingModel
-from langchain.tools import tool
+from logger import logger
 
 class UtilityQdrant:
     def __init__(self, collection_name: str, embedding_dim: int = 1536):
@@ -17,16 +17,15 @@ class UtilityQdrant:
         collection_names = [col.name for col in collections]  # Extract collection names
 
         if collection_name in collection_names:
-            print(f"Collection '{collection_name}' already exists")
+            logger.info(f"Collection '{collection_name}' already exists")
         else:
             # Create the collection
             self.client.create_collection(
                 collection_name=collection_name,
                 vectors_config=VectorParams(size=embedding_dim, distance=Distance.COSINE)
-            )
-            print(f"--------------------")
-            print(f"Collection '{collection_name}' created")
-            print(f"--------------------")
+            )            
+            logger.info(f"Collection '{collection_name}' created")
+            
         
 
     def insert_documents(self, collection_name, vectored_data, metadata_list):
@@ -39,10 +38,9 @@ class UtilityQdrant:
             PointStruct(id=str(uuid.uuid4()), vector=vector, payload=metadata)
             for vector, metadata in zip(vectored_data, metadata_list)
         ]
-
         # Insert the documents
         self.client.upsert(collection_name=collection_name, points=points)
-        print(f"Inserted {len(points)} documents into '{collection_name}'")  
+        logger.debug(f"Inserted {len(points)} documents into '{collection_name}'")  
 
     
     def search(self, collection_name, query_vector, top_k=3):
@@ -52,16 +50,15 @@ class UtilityQdrant:
             query=query_vector,
             limit=top_k
         ).points
-
+        logger.debug(f"Found {len(hits)} hits")        
+        return hits
+        # extras for prototyping
         # query_filter=models.Filter(
         #must=[models.FieldCondition(key="year", range=models.Range(gte=2000))])
+        #for hit in hits:
+         #   logger.debug(hit.payload, "score:", hit.score)
 
-        print(f"Found {len(hits)} hits")
-
-        for hit in hits:
-            print(hit.payload, "score:", hit.score)
         
-        return hits
 
 
 if __name__ == '__main__':
@@ -151,9 +148,7 @@ if __name__ == '__main__':
     vectors = utility.create_embeddings_from_text(test_chunks)
     qdrant.insert_documents(COLLECTION_NAME, vectors, metadata_list)
 
-
-
-    print("Embeddings and metadata inserted successfully.")
+    logger.debug("Embeddings and metadata inserted successfully.")
 
     query = "Find like first chunk"
     # Ensure the query is a list for compatibility
@@ -161,13 +156,13 @@ if __name__ == '__main__':
     search_results = qdrant.search(COLLECTION_NAME, query_vector, 3)
 
     # Print results
-    print("\n🔍 Search Results:")
+    logger.debug("\n🔍 Search Results:")
     #for result in search_results:
     #    print(f"Score: {result['score']}, Metadata: {result['metadata']}")
 
 
 
-    print("--------------------")
+    logger.debug("--------------------")
     #query = "What is the purpose of feature scaling in machine learning?"
     #vector_query = utility.create_embeddings_from_text(query)
     #search_results = qdrant.search(COLLECTION_NAME, vector_query, utility)

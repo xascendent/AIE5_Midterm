@@ -1182,6 +1182,7 @@ dependencies = [
     { name = "langchain-text-splitters" },
     { name = "langgraph" },
     { name = "nest-asyncio" },
+    { name = "tavily-python" },
     { name = "uuid7" },
 ]
 
@@ -1194,7 +1195,22 @@ requires-dist = [
     { name = "langchain-text-splitters", specifier = ">=0.3.6" },
     { name = "langgraph", specifier = ">=0.2.73" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
+    { name = "tavily-python", specifier = ">=0.5.1" },
     { name = "uuid7", specifier = ">=0.1.0" },
+]
+
+[[package]]
+name = "tavily-python"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "requests" },
+    { name = "tiktoken" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/ff/ba1a3769c34d022aeba544ff7b18cbcd0d23a6358fc3566b2101c6bf2817/tavily_python-0.5.1.tar.gz", hash = "sha256:44b0eefe79a057cd11d3cd03780b63b4913400122350e38285acfb502c2fffc1", size = 107503 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/cd/71088461d7720128c78802289b3b36298f42745e5f8c334b0ffc157b881e/tavily_python-0.5.1-py3-none-any.whl", hash = "sha256:169601f703c55cf338758dcacfa7102473b479a9271d65a3af6fc3668990f757", size = 43767 },
 ]
 
 [[package]]

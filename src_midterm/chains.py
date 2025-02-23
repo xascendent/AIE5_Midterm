@@ -4,6 +4,7 @@ from enum import Enum
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI # might need to remove if we create our own model
+from logger import logger
 
 load_dotenv()
 

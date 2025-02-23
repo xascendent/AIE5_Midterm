@@ -2,6 +2,7 @@ import os
 from enum import Enum
 from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
+from logger import logger
 
 load_dotenv()
 
@@ -21,11 +22,11 @@ class UtilityOpenAI:
         # check to see if the list is empty
         if not chunks:
             raise ValueError("List of text chunks cannot be empty.")
-        print("Chunks to embed:", chunks)
+        logger.debug("Chunks to embed:", chunks)
         vectors = self.embedding.embed_documents(chunks)    
-        print(f"Number of vectors: {len(vectors)}")
-        print(f"First vector: {vectors[0]}")
-        print(f"Last vector: {vectors[-1]}")
+        logger.debug(f"Number of vectors: {len(vectors)}")
+        logger.debug(f"First vector: {vectors[0]}")
+        logger.debug(f"Last vector: {vectors[-1]}")
         return vectors
     
     def get_embedding_dimension(self) -> int:
