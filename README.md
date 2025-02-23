@@ -49,8 +49,8 @@ powershell commands:
 **Problem Statement:**  
 Occupational therapists often need quick access to reliable, up-to-date information on splinting techniques and tools while working with patients, but the time-consuming process of manually searching for articles and images can disrupt patient care.
 
-**Why this is a Problem for the User:**  
-Occupational therapists, like the user's wife, are often pressed for time during patient sessions and need immediate access to accurate and relevant information. Manually searching through journal articles and Google for splinting techniques or images is inefficient and detracts from valuable patient interaction. A chatbot capable of quickly retrieving and displaying OT splinting information, including images or at least direct links to source articles, would streamline this process. This solution would enhance clinical efficiency, support evidence-based practice, and ultimately improve patient outcomes by allowing the therapist to focus more on hands-on care rather than administrative tasks.
+**Why this is a Problem:**  
+Occupational therapists, like my wife, are often pressed for time during patient sessions and need immediate access to accurate and relevant information. Manually searching through journal articles and Google for splinting techniques or images is inefficient and detracts from valuable patient interaction. A chatbot capable of quickly retrieving and displaying OT splinting information, including images or at least direct links to source articles, would streamline this process. This solution would enhance clinical efficiency, support evidence-based practice, and ultimately improve patient outcomes by allowing the therapist to focus more on hands-on care rather than administrative tasks.
 
 ## Task 2:
 Proposed Solution:

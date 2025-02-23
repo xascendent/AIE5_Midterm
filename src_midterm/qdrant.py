@@ -5,11 +5,11 @@ from utils_openai import UtilityOpenAI, GptEmbeddingModel
 from logger import logger
 
 class UtilityQdrant:
-    def __init__(self, collection_name: str, embedding_dim: int = 1536):
+    def __init__(self, collection_name: str, embedding_dim: int = 1536, hit_score: float = 0.60):
         self.client = QdrantClient(":memory:")
         self.COLLECTION_NAME = collection_name  # "qt_document_collection"
         self.create_collection(self.COLLECTION_NAME, embedding_dim)
-        self.hit_score = 0.60 # used for tuning the search results        
+        self.hit_score = hit_score # used for tuning the search results        
 
     def create_collection(self, collection_name, embedding_dim):
         """Creates a collection in Qdrant."""
@@ -59,7 +59,15 @@ class UtilityQdrant:
                 return_hits.append({
                     "score": hit.score,
                     "metadata": hit.payload
-                })     
+                })
+
+        if not return_hits:
+            logger.debug("No relevant documents found.")
+            return_hits.append({
+                "score": 0,
+                "metadata": "No relevant documents found."
+            })
+
         return return_hits
         # extras for prototyping
         # query_filter=models.Filter(

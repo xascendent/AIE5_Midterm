@@ -13,5 +13,5 @@ dependencies = [
     "langgraph>=0.2.73",
     "nest-asyncio>=1.6.0",
     "tavily-python>=0.5.1",
-    "uuid7>=0.1.0",
+    "uuid7>=0.1.0",    
 ]
