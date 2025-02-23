@@ -22,6 +22,19 @@ class MetaDataModel(BaseModel):
     class Config:
         orm_mode = True  # Enables compatibility with ORMs like SQLAlchemy
 
+    def to_dict(self):
+        """Convert the model to a dictionary."""
+        return self.model_dump()
+    
+    def from_dict(self, data: dict):
+        """Update the model from a dictionary."""
+        self.model_load(data)
+        
+    @classmethod
+    def from_dict(cls, metadata_dict: dict) -> "MetaDataModel":
+        """Creates a MetaDataModel instance from a dictionary."""
+        return cls(**metadata_dict)
+
 
 if __name__ == "__main__":
     print("Ready Player 1")

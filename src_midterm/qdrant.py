@@ -1,8 +1,10 @@
 import uuid
 from qdrant_client import QdrantClient
-from qdrant_client.models import ScoredPoint, Filter, FieldCondition, MatchValue, PointStruct, Distance, VectorParams
+from qdrant_client.models import ScoredPoint, Filter, FieldCondition, MatchValue, PointStruct, Distance, VectorParams, MatchValue
 from utils_openai import UtilityOpenAI, GptEmbeddingModel
+from templates import MetaDataModel
 from logger import logger
+from typing import List, Optional
 
 class UtilityQdrant:
     def __init__(self, collection_name: str, embedding_dim: int = 1536, hit_score: float = 0.60):
@@ -26,22 +28,60 @@ class UtilityQdrant:
                 vectors_config=VectorParams(size=embedding_dim, distance=Distance.COSINE)
             )            
             logger.info(f"Collection '{collection_name}' created")
-            
-        
 
-    def insert_documents(self, collection_name, vectored_data, metadata_list):
-        """Inserts documents into a collection with metadata."""
-        if len(vectored_data) != len(metadata_list):
-            raise ValueError("Number of vectors must match number of metadata entries")
+    def show_all_document_metadata(self):
+        """Displays all metadata for documents in the collection."""
+        scroll_result, _ = self.client.scroll(collection_name=self.COLLECTION_NAME) 
+        for doc in scroll_result:  # Iterate through the list of documents
+            logger.info(doc.payload)  # Now doc has a `.payload` attribute
+
+
+    def delete_document(self, document_id: str):
+        """Deletes all vectors associated with a given document_id."""
+        
+        # Create a valid filter using Qdrant's `Filter` model
+        delete_filter = Filter(
+            must=[
+                FieldCondition(
+                    key="document_id",
+                    match=MatchValue(value=document_id)
+                )
+            ]
+        )
+
+        # Perform the deletion with the correct filter format
+        self.client.delete(
+            collection_name=self.COLLECTION_NAME,
+            points_selector=delete_filter  # Use the filter to select the points to delete
+        )
+
+        logger.info(f"Deleted all vectors for document_id: {document_id}")
+
+
+    def insert_documents2(self, collection_name, vectored_data, vectored_metadata):
+        """Inserts chunked documents into a Qdrant collection with metadata."""
+
+        # Ensure vectored_metadata is a dictionary (not a list)
+        if not isinstance(vectored_metadata, dict):
+            raise ValueError("Metadata must be a dictionary.")
+
+        # Ensure vectored_data is a list of embeddings
+        if not isinstance(vectored_data, list) or not all(isinstance(v, list) for v in vectored_data):
+            raise ValueError("vectored_data must be a list of vector lists.")
+        
+        logger.debug("Embedding Count:", len(vectored_data))
+        logger.debug("Metadata:", vectored_metadata)
 
         # Create the points
         points = [
-            PointStruct(id=str(uuid.uuid4()), vector=vector, payload=metadata)
-            for vector, metadata in zip(vectored_data, metadata_list)
+            PointStruct(id=str(uuid.uuid4()), vector=vector, payload=vectored_metadata)
+            for vector in vectored_data
         ]
-        # Insert the documents
+
+        # Insert into Qdrant
         self.client.upsert(collection_name=collection_name, points=points)
-        logger.debug(f"Inserted {len(points)} documents into '{collection_name}'")  
+        logger.debug(f"Inserted {len(points)} documents into '{collection_name}'")
+
 
     
     def search(self, collection_name, query_vector, top_k=3)-> list:
@@ -102,14 +142,30 @@ if __name__ == '__main__':
     vectors = utility.create_embeddings_from_text(test_chunks)
 
     # Sample metadata for each document
+    #OLD WOKRING metadata_list = [
+    #    {"document_id": "doc1", "title": "First Document", "author": "Alice"},
+    #    {"document_id": "doc2", "title": "Second Document", "author": "Bob"},
+    #    {"document_id": "doc3", "title": "Third Document", "author": "Charlie"},
+    #    {"document_id": "doc4", "title": "Machine Learning", "author": "John"},
+    #]
+
     metadata_list = [
-        {"document_id": "doc1", "title": "First Document", "author": "Alice"},
-        {"document_id": "doc2", "title": "Second Document", "author": "Bob"},
-        {"document_id": "doc3", "title": "Third Document", "author": "Charlie"},
+        MetaDataModel(document_id="doc1", title="First Document", author="Alice"),
+        MetaDataModel(document_id="doc2", title="Second Document", author="Bob"),
+        MetaDataModel(document_id="doc3", title="Third Document", author="Charlie"),
+        MetaDataModel(document_id="doc4", title="Machine Learning", author="John"),
     ]
 
+
+
+
+    #metadata = []
+
     # Insert embeddings with metadata
-    qdrant.insert_documents(COLLECTION_NAME, vectors, metadata_list)
+    for i in range(3):
+        qdrant.insert_documents2(COLLECTION_NAME, [vectors[i]], metadata_list[i].to_dict())
+
+    #qdrant.insert_documents(COLLECTION_NAME, vectors, metadata_list)
 
 
 
@@ -165,7 +221,8 @@ if __name__ == '__main__':
     ]
 
     vectors = utility.create_embeddings_from_text(test_chunks)
-    qdrant.insert_documents(COLLECTION_NAME, vectors, metadata_list)
+    metadata = MetaDataModel(document_id="doc5", title="Document number 5 Chunk", author="Seraphina")
+    qdrant.insert_documents2(COLLECTION_NAME, vectors, metadata.to_dict())
 
     logger.debug("Embeddings and metadata inserted successfully.")
 
@@ -183,6 +240,14 @@ if __name__ == '__main__':
 
 
     logger.debug("--------------------")
+
+    qdrant.show_all_document_metadata()
+    qdrant.delete_document("doc2")
+    qdrant.show_all_document_metadata()
+
+
+
+
     #query = "What is the purpose of feature scaling in machine learning?"
     #vector_query = utility.create_embeddings_from_text(query)
     #search_results = qdrant.search(COLLECTION_NAME, vector_query, utility)
