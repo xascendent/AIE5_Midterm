@@ -66,5 +66,5 @@ if __name__ == "__main__":
     repo.delete_expired_documents()
     documents = repo.get_all_documents()
     for doc in documents:
-        print(doc)
-    print("Done")
+        logger.debug(doc)
+    logger.debug("Done")

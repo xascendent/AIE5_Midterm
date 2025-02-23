@@ -41,6 +41,7 @@ def extract_search_page_content(url: str)-> str:
 
 if __name__ == "__main__":
     demoMode = True
+    print ('Ready Player 1')
 
     if demoMode:
         logger.debug("Demo mode enabled")

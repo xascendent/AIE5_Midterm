@@ -12,6 +12,7 @@ dependencies = [
     "langchain-text-splitters>=0.3.6",
     "langgraph>=0.2.73",
     "nest-asyncio>=1.6.0",
+    "pydantic>=2.10.6",
     "tavily-python>=0.5.1",
-    "uuid7>=0.1.0",    
+    "uuid7>=0.1.0",
 ]
