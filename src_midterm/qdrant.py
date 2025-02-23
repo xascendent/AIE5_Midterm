@@ -8,7 +8,8 @@ class UtilityQdrant:
     def __init__(self, collection_name: str, embedding_dim: int = 1536):
         self.client = QdrantClient(":memory:")
         self.COLLECTION_NAME = collection_name  # "qt_document_collection"
-        self.create_collection(self.COLLECTION_NAME, embedding_dim)        
+        self.create_collection(self.COLLECTION_NAME, embedding_dim)
+        self.hit_score = 0.60 # used for tuning the search results        
 
     def create_collection(self, collection_name, embedding_dim):
         """Creates a collection in Qdrant."""
@@ -43,20 +44,30 @@ class UtilityQdrant:
         logger.debug(f"Inserted {len(points)} documents into '{collection_name}'")  
 
     
-    def search(self, collection_name, query_vector, top_k=3):
+    def search(self, collection_name, query_vector, top_k=3)-> list:
         """Search for documents in Qdrant using an embedding vector of the query."""
         hits  = self.client.query_points(
             collection_name=collection_name,
             query=query_vector,
             limit=top_k
         ).points
-        logger.debug(f"Found {len(hits)} hits")        
-        return hits
+        logger.debug(f"Found {len(hits)} hits")   
+        # Filter hits based on score
+        return_hits = []
+        for hit in hits:
+            if hit.score > self.hit_score:
+                return_hits.append({
+                    "score": hit.score,
+                    "metadata": hit.payload
+                })     
+        return return_hits
         # extras for prototyping
         # query_filter=models.Filter(
         #must=[models.FieldCondition(key="year", range=models.Range(gte=2000))])
         #for hit in hits:
          #   logger.debug(hit.payload, "score:", hit.score)
+
+
 
         
 
@@ -156,9 +167,10 @@ if __name__ == '__main__':
     search_results = qdrant.search(COLLECTION_NAME, query_vector, 3)
 
     # Print results
+    logger.debug("--------------------")
     logger.debug("\n🔍 Search Results:")
-    #for result in search_results:
-    #    print(f"Score: {result['score']}, Metadata: {result['metadata']}")
+    for result in search_results:
+        logger.debug(f"Score: {result['score']}, Metadata: {result['metadata']}")
 
 
 
