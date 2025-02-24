@@ -160,7 +160,7 @@ document_not_found_chain = document_not_found_prompt | llm_instance
 
 
 
-async def run_research_node(user_question: str) -> str:
+async def run_research_vector_store_node(user_question: str) -> str:
     """Runs a research node through the pipeline"""
     reconstructed_document_file_name = ""
     reconstructed_document_title = ""
@@ -195,6 +195,11 @@ async def run_research_node(user_question: str) -> str:
     else:
         return "NO DOCUMENT FOUND"
 
+async def run_research_llm_node(user_question: str) -> str:
+      response = document_not_found_chain.invoke(
+            {"messages": [{"role": "user", "content": user_question}]}
+        )
+      return response.content
         
     
 
@@ -203,14 +208,11 @@ async def run_test_query(user_question: str):
     """Runs a test query through the pipeline"""
 
     # Step 1: Try to retrieve a relevant document
-    research_response = await run_research_node(user_question)
+    research_response = await run_research_vector_store_node(user_question)
 
     if research_response == "NO DOCUMENT FOUND":
-        # Step 2: If no document is found, invoke the fallback response
-        response = document_not_found_chain.invoke(
-            {"messages": [{"role": "user", "content": user_question}]}
-        )
-        final_response = response.content
+        # Step 2: If no document is found, invoke the fallback response.  Next rev we will add a search tool and eval the answers
+        final_response = await run_research_llm_node()
     else:
         # Use the retrieved research response
         final_response = research_response
