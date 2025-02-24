@@ -7,6 +7,7 @@ class MetaDataModel(BaseModel):
     """Standard metadata model with required and optional fields."""
     
     # REQUIRED fields
+    document_name: str = Field(..., description="File name of the document")
     document_id: str = Field(..., description="Unique document identifier")
     document_date: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"),
@@ -18,18 +19,15 @@ class MetaDataModel(BaseModel):
     description: Optional[str] = Field(default="No description provided.", description="Brief document description")
     author: Optional[str] = Field(default="Anonymous", description="Author of the document")
     tags: Optional[List[str]] = Field(default_factory=lambda: ["tag1", "tag2", "tag3"], description="Tags for categorization")
+    subject: Optional[str] = Field(default="General", description="Subject of the document")
 
     class Config:
         orm_mode = True  # Enables compatibility with ORMs like SQLAlchemy
 
     def to_dict(self):
         """Convert the model to a dictionary."""
-        return self.model_dump()
-    
-    def from_dict(self, data: dict):
-        """Update the model from a dictionary."""
-        self.model_load(data)
-        
+        return self.model_dump()   
+
     @classmethod
     def from_dict(cls, metadata_dict: dict) -> "MetaDataModel":
         """Creates a MetaDataModel instance from a dictionary."""

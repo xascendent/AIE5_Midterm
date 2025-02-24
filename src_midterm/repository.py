@@ -19,10 +19,10 @@ class DocumentRepository:
         cleaned_title = title.strip().upper()
         return hashlib.sha256(cleaned_title.encode()).hexdigest()
 
-    def insert_document(self, title, metadata, ttl_days=365):
+    def insert_document(self, document_id, document_name, title, metadata, subject, ttl_days=365):
         """Insert a document if the hashed title is unique."""
         title_hash = self.hash_title(title)
-        document_id = str(uuid.uuid4())
+        # document_id = str(uuid.uuid4())
 
         # Check if document already exists
         self.db.cursor.execute(SQLQueries.GET_DOCUMENT_BY_HASH, (title_hash,))
@@ -33,7 +33,7 @@ class DocumentRepository:
             return False  # Already exists
 
         # Insert new document
-        self.db.cursor.execute(SQLQueries.INSERT_DOCUMENT, (document_id, title, title_hash, ttl_days, metadata))
+        self.db.cursor.execute(SQLQueries.INSERT_DOCUMENT, (document_id, document_name, title, title_hash, ttl_days, metadata, subject))
         self.db.commit()
         logger.info(f"Inserted document: {title}")
         return True  # Successfully inserted
@@ -59,9 +59,9 @@ class DocumentRepository:
 
 if __name__ == "__main__":
     print("Ready Player 1")
-    repo = DocumentRepository()
-    repo.insert_document("Ready Player 1", "A book about virtual reality and gaming.")
-    repo.insert_document("Ready Player 2", "A sequel to the first book.")
+    repo = DocumentRepository()    
+    repo.insert_document(str(uuid.uuid4()), "ready1.pdf", "Ready Player 1", "A book about virtual reality and gaming.", "Science Fiction")
+    repo.insert_document(str(uuid.uuid4()), "ready2.pdf", "Ready Player 2", "A sequel to the first book.", "Science Fiction")
     repo.decrement_ttl()
     repo.delete_expired_documents()
     documents = repo.get_all_documents()
