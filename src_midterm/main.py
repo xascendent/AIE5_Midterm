@@ -1,4 +1,5 @@
 import asyncio
+import chainlit as cl
 from langgraph.graph import StateGraph, END
 from chains import (
     run_research_vector_store_node,
@@ -7,17 +8,20 @@ from chains import (
 )
 from typing import Dict, TypedDict
 
+
 # Define the state schema using TypedDict
 class QueryState(TypedDict):
     user_query: str
     research_response: str
     final_response: str
 
+
 async def supervisor_node(state: QueryState) -> Dict:
     """Decides where to route the query."""
     if state.get("final_response"):
         return {"next": "post_processing"}
     return {"next": "research"}
+
 
 async def research_node(state: QueryState) -> QueryState:
     """Calls vector store first, then falls back to LLM if needed."""
@@ -30,6 +34,7 @@ async def research_node(state: QueryState) -> QueryState:
 
     state["research_response"] = research_response
     return state
+
 
 async def post_processing_node(state: QueryState) -> QueryState:
     """Formats the final response before returning it."""
@@ -58,7 +63,7 @@ graph.set_entry_point("supervisor")
 # Compile graph executor
 research_graph_executor = graph.compile()
 
-# Async function to run the graph
+
 async def run_graph(user_query: str):
     """Run the LangGraph pipeline."""
     initial_state: QueryState = {"user_query": user_query, "research_response": "", "final_response": ""}
@@ -66,25 +71,25 @@ async def run_graph(user_query: str):
     async for output in research_graph_executor.astream(initial_state):
         final_state = output  # Capture the last state
 
-    # Check if final_response is nested inside 'post_processing'
+        # If using Chainlit, yield intermediate state updates
+        if "research_response" in final_state:
+            await cl.Message(content=f"**Research Response:**\n{final_state['research_response']}").send()
+
     if "post_processing" in final_state and "final_response" in final_state["post_processing"]:
         return final_state["post_processing"]["final_response"]
 
     return "No response generated."
 
 
+# Chainlit App
+@cl.on_message
+async def on_message(message: cl.Message):
+    """Handle incoming messages in Chainlit."""
+    user_query = message.content
+    response = await run_graph(user_query)
 
-# Main function
-async def main():
-    print("\n🚀 Ready player one!\n")
-    query = "What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow?"
-    
-    response = await run_graph(query)
+    await cl.Message(content=f"**Final Answer:**\n{response}").send()
 
-    print("\n📌 **Formatted Response**\n")
-    print("-" * 50)
-    print(response)
-    print("-" * 50)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    cl.run()
