@@ -85,10 +85,15 @@ async def run_graph(user_query: str):
 @cl.on_message
 async def on_message(message: cl.Message):
     """Handle incoming messages in Chainlit."""
+    if message.elements:  # This checks if a user tries to upload a file
+        await cl.Message(content="❌ File uploads are not allowed.").send()
+        return
+
     user_query = message.content
     response = await run_graph(user_query)
 
     await cl.Message(content=f"**Final Answer:**\n{response}").send()
+
 
 
 if __name__ == "__main__":

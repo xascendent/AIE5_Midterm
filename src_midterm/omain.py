@@ -4,31 +4,6 @@ from langgraph.graph import END, MessageGraph  # Message Graph  is a state machi
 from chains import ot_user_chain, ot_research_chain, ot_post_process_chain
 import json
 
-SUPERVISOR = "supervisor"
-RESEARCH = "research"
-POST_PROCESS = "post_process"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 GENERATE = "generate_node"
 RESEARCH = "research_node"

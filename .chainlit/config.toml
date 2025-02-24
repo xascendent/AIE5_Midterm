@@ -54,7 +54,6 @@ edit_message = true
 [UI]
 # Name of the assistant.
 name = "Assistant"
-enable_file_upload = false
 
 # default_theme = "dark"
 
