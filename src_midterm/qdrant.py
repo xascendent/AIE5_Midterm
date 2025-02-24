@@ -1,7 +1,7 @@
 import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import ScoredPoint, Filter, FieldCondition, MatchValue, PointStruct, Distance, VectorParams, MatchValue
-from utils_openai import UtilityOpenAI, GptEmbeddingModel
+from utils_openai import UtilityOpenAI
 from templates import MetaDataModel
 from logger import logger
 from typing import List, Optional

@@ -46,7 +46,6 @@ async def get_pdf_metadata(directory: str, pdf_file: str) -> MetaDataModel:
         return None        
 
 
-
 async def load_pdf(directory: str, pdf_file: str) -> list[Document]:
     """Loads a single PDF file and returns a list of Document objects."""
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory, pdf_file)
