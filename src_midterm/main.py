@@ -1,66 +1,90 @@
-from typing import List, Sequence
-from langchain_core.messages import BaseMessage, HumanMessage
-from langgraph.graph import END, MessageGraph  # Message Graph  is a state machine where messages flow between nodes. It handles message state and ensures the graph executes in the correct order.
-from chains import ot_user_chain, ot_research_chain, ot_post_process_chain
-import json
+import asyncio
+from langgraph.graph import StateGraph, END
+from chains import (
+    run_research_vector_store_node,
+    run_research_llm_node,
+    format_final_chain
+)
+from typing import Dict, TypedDict
 
-GENERATE = "generate_node"
-RESEARCH = "research_node"
-POST_PROCESS = "postprocess_node"
-MAX_ITERATIONS = 3
+# Define the state schema using TypedDict
+class QueryState(TypedDict):
+    user_query: str
+    research_response: str
+    final_response: str
 
+async def supervisor_node(state: QueryState) -> Dict:
+    """Decides where to route the query."""
+    if state.get("final_response"):
+        return {"next": "post_processing"}
+    return {"next": "research"}
 
-def generation_node(state: Sequence[BaseMessage]):
-    return ot_user_chain.invoke({"messages": state})
+async def research_node(state: QueryState) -> QueryState:
+    """Calls vector store first, then falls back to LLM if needed."""
+    user_query = state["user_query"]
 
-def research_node(state: Sequence[BaseMessage]):
-    return ot_research_chain.invoke({"messages": state})
+    research_response = await run_research_vector_store_node(user_query)
 
-def postprocess_node(state: Sequence[BaseMessage]):
-    latest_message = state[-1].content  # Get the last message
-    return ot_post_process_chain.invoke({"messages": [HumanMessage(content=latest_message)]})
+    if research_response == "NO DOCUMENT FOUND":
+        research_response = await run_research_llm_node(user_query)
 
-def should_continue(state: List[BaseMessage]):
-    if len(state) > MAX_ITERATIONS:
-        return POST_PROCESS
-    elif state:  # Ensure there's always a defined exit path
-        return RESEARCH
-    return POST_PROCESS  # Fallback to prevent implicit exit
+    state["research_response"] = research_response
+    return state
 
-# Initialize the message graph (state machine for message processing)
-builder = MessageGraph()
+async def post_processing_node(state: QueryState) -> QueryState:
+    """Formats the final response before returning it."""
+    formatted_response = format_final_chain.invoke(
+        {"messages": [{"role": "system", "content": state["research_response"]}]}
+    )
 
-# Add nodes to the graph.
-builder.add_node(GENERATE, generation_node)
-builder.add_node(RESEARCH, research_node)
-builder.add_node(POST_PROCESS, postprocess_node)
-
-# Define the transitions between nodes.
-builder.set_entry_point(GENERATE)  
-builder.add_conditional_edges(GENERATE, should_continue)
-builder.add_edge(RESEARCH, GENERATE)
-builder.add_edge(POST_PROCESS, END)
-
-graph = builder.compile()
-
-graph_structure = graph.get_graph(xray=True)
-print(type(graph_structure))  # Debugging step
-
-graph_image = graph_structure.draw_mermaid()
-print(graph_image) # we can copy the output to https://mermaid.live/ to get the graph
+    state["final_response"] = formatted_response.content  # Update state
+    return state  # Ensure state is returned correctly
 
 
-if __name__ == '__main__':
-    print ("Ready player one")
-    inputs = HumanMessage(content="""" What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow for adults between the ages of 30-50 years old according to peer reviewed journal articles published in the last 5 years? "
-                          """)
-    response = graph.invoke(inputs)
-    print(f"{response}")
-    print(f"--------------------")
+# Define LangGraph with state schema
+graph = StateGraph(QueryState)
 
-    last_message = response[-1].content
-    print(f'{last_message}')
-  
-    print(f"--------------------")
-    second_to_last_message = response[-2].content
-    print(f'{second_to_last_message}')
+graph.add_node("supervisor", supervisor_node)
+graph.add_node("research", research_node)
+graph.add_node("post_processing", post_processing_node)
+
+# Define edges (flow)
+graph.add_edge("supervisor", "research")
+graph.add_edge("research", "post_processing")
+graph.add_edge("post_processing", END)
+
+graph.set_entry_point("supervisor")
+
+# Compile graph executor
+research_graph_executor = graph.compile()
+
+# Async function to run the graph
+async def run_graph(user_query: str):
+    """Run the LangGraph pipeline."""
+    initial_state: QueryState = {"user_query": user_query, "research_response": "", "final_response": ""}
+
+    async for output in research_graph_executor.astream(initial_state):
+        final_state = output  # Capture the last state
+
+    # Check if final_response is nested inside 'post_processing'
+    if "post_processing" in final_state and "final_response" in final_state["post_processing"]:
+        return final_state["post_processing"]["final_response"]
+
+    return "No response generated."
+
+
+
+# Main function
+async def main():
+    print("\n🚀 Ready player one!\n")
+    query = "What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow?"
+    
+    response = await run_graph(query)
+
+    print("\n📌 **Formatted Response**\n")
+    print("-" * 50)
+    print(response)
+    print("-" * 50)
+
+if __name__ == "__main__":
+    asyncio.run(main())
