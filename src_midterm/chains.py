@@ -96,7 +96,8 @@ format_final_prompt = ChatPromptTemplate.from_messages(
             10. **Document File Name**:
             
             I do not want you to add any additional information and if you don't have the information for the specific section, add I do not have information for this section.  Other will capture 
-            any other information that does not fit into the other categories.  Please make sure to add the document title and document file name at the end of the response.
+            any other information that does not fit into the other categories.  Please make sure to add the document title and document file name at the end of the response if they are provided otherwise
+            remove 9 and 10 from the response.
             """,
         ),
         MessagesPlaceholder(variable_name="messages"),
