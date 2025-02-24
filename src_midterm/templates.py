@@ -14,6 +14,7 @@ class MetaDataModel(BaseModel):
         description="Date of the document creation"
     )
     title: str = Field(..., min_length=1, max_length=255, description="Title of the document")
+    chunk_number: int = Field(default=1, description="Used to put the document back together from the vector store")
 
     # OPTIONAL fields
     description: Optional[str] = Field(default="No description provided.", description="Brief document description")

@@ -58,8 +58,11 @@ class UtilityQdrant:
         logger.info(f"Deleted all vectors for document_id: {document_id}")
 
 
-    def insert_documents2(self, collection_name, vectored_data, vectored_metadata):
+    def insert_documents(self, collection_name, vectored_data, vectored_metadata):
         """Inserts chunked documents into a Qdrant collection with metadata."""
+
+        logger.debug(f"Inserted metadata payload: {vectored_metadata}")
+
 
         # Ensure vectored_metadata is a dictionary (not a list)
         if not isinstance(vectored_metadata, dict):
@@ -69,7 +72,8 @@ class UtilityQdrant:
         if not isinstance(vectored_data, list) or not all(isinstance(v, list) for v in vectored_data):
             raise ValueError("vectored_data must be a list of vector lists.")
         
-        logger.debug("Embedding Count:", len(vectored_data))
+        logger.debug(f"Embedding Count: {len(vectored_data)}")
+
         logger.debug("Metadata:", vectored_metadata)
 
         # Create the points
@@ -81,7 +85,6 @@ class UtilityQdrant:
         # Insert into Qdrant
         self.client.upsert(collection_name=collection_name, points=points)
         logger.debug(f"Inserted {len(points)} documents into '{collection_name}'")
-
 
     
     def search(self, collection_name, query_vector, top_k=3)-> list:
@@ -150,10 +153,10 @@ if __name__ == '__main__':
     #]
 
     metadata_list = [
-        MetaDataModel(document_id="doc1", title="First Document", author="Alice"),
-        MetaDataModel(document_id="doc2", title="Second Document", author="Bob"),
-        MetaDataModel(document_id="doc3", title="Third Document", author="Charlie"),
-        MetaDataModel(document_id="doc4", title="Machine Learning", author="John"),
+        MetaDataModel(document_name = "test1", document_id="doc1", title="First Document", author="Alice", chunk_number=1),
+        MetaDataModel(document_name = "test2", document_id="doc2", title="Second Document", author="Bob", chunk_number=1),
+        MetaDataModel(document_name = "test3", document_id="doc3", title="Third Document", author="Charlie", chunk_number=1),
+        MetaDataModel(document_name = "test4", document_id="doc4", title="Machine Learning", author="John", chunk_number=1),
     ]
 
 
@@ -162,8 +165,8 @@ if __name__ == '__main__':
     #metadata = []
 
     # Insert embeddings with metadata
-    for i in range(3):
-        qdrant.insert_documents2(COLLECTION_NAME, [vectors[i]], metadata_list[i].to_dict())
+    for i in range(3):        
+        qdrant.insert_documents(COLLECTION_NAME, [vectors[i]], metadata_list[i].to_dict())
 
     #qdrant.insert_documents(COLLECTION_NAME, vectors, metadata_list)
 
@@ -221,8 +224,8 @@ if __name__ == '__main__':
     ]
 
     vectors = utility.create_embeddings_from_text(test_chunks)
-    metadata = MetaDataModel(document_id="doc5", title="Document number 5 Chunk", author="Seraphina")
-    qdrant.insert_documents2(COLLECTION_NAME, vectors, metadata.to_dict())
+    metadata = MetaDataModel(document_name="test6", document_id="doc5", title="Document number 5 Chunk", author="Seraphina", chunk_number=1)
+    qdrant.insert_documents(COLLECTION_NAME, vectors, metadata.to_dict())
 
     logger.debug("Embeddings and metadata inserted successfully.")
 
@@ -241,9 +244,11 @@ if __name__ == '__main__':
 
     logger.debug("--------------------")
 
-    qdrant.show_all_document_metadata()
+    qdrant.show_all_document_metadata()        
     qdrant.delete_document("doc2")
     qdrant.show_all_document_metadata()
+
+
 
 
 

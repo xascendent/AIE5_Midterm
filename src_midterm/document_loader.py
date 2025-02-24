@@ -8,6 +8,7 @@ from langchain_text_splitters import CharacterTextSplitter
 from logger import logger
 from templates import MetaDataModel
 from utils_openai import UtilityOpenAI
+from qdrant import UtilityQdrant
 
 
 
@@ -42,26 +43,9 @@ async def get_pdf_metadata(directory: str, pdf_file: str) -> MetaDataModel:
             )
     except Exception as e:
         logger.error(f"Error reading PDF metadata for {pdf_file}: {str(e)}")
-        return None
-         
+        return None        
 
-# on loading splitting and embedding
-#async def load_pdf(directory: str) -> list[Document]:
-#    """Loads all PDFs in the given directory."""
-#    pdf_files = await get_pdf_files(directory)
 
-#    if not pdf_files:
-#        logger.error("No PDF files found.")
-#        return []
-
-#    documents = []
-#    for file_name in pdf_files:
-#        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory, file_name)
-#        loader = PyPDFLoader(file_path, extract_images=False)
-#        async for page in loader.alazy_load():
-#            documents.append(page)
-
-#    return documents
 
 async def load_pdf(directory: str, pdf_file: str) -> list[Document]:
     """Loads a single PDF file and returns a list of Document objects."""
@@ -93,8 +77,17 @@ async def chunk_pdf_document(documents: list[Document], chunk_size: int = 1000, 
 async def main():
     print("Ready Player 1")
     dir = "data/pdfs"
+    COLLECTION_NAME = "qt_document_collection"
     pdf_files = await get_pdf_files(dir)
+
+    
+    # Initialize OpenAI Utility
     utility = UtilityOpenAI()
+    embedding_dim = utility.get_embedding_dimension()
+
+
+    # Initialize Qdrant
+    qdrant = UtilityQdrant(COLLECTION_NAME, embedding_dim) 
     
     for pdf_file in pdf_files:
         logger.debug(f"Processing PDF: {pdf_file}")
@@ -111,8 +104,19 @@ async def main():
         logger.debug(f"First chunk: {chunks[0] if chunks else 'No chunks generated'}")
         vectors = utility.create_embeddings_from_text(chunks)
         logger.debug(f"Number of vectors: {len(vectors)}")
-        logger.debug(f"First vector: {vectors[0]}")
-
+        logger.debug(f"First vector: {vectors[0]}")        
+        qdrant.insert_documents(COLLECTION_NAME, vectors, metadata.to_dict())  
+     
+    query = " What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow"
+    # Ensure the query is a list for compatibility
+    query_vector = utility.create_embeddings_from_text([query])[0]  
+    search_results = qdrant.search(COLLECTION_NAME, query_vector, 3)
+    logger.debug(f"Search results: {search_results}")
+    # Now lets pull the whole document
+    pdf_file = search_results[0]["metadata"]["document_name"]
+    document = await load_pdf(dir, pdf_file)  
+    logger.debug(f"Document: {document}")
+    logger.debug("Done")
 
 
 if __name__ == "__main__":
