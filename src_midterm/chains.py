@@ -92,15 +92,11 @@ async def run_test_query(user_question: str):
 
     # Step 1: Retrieve similar documents from Qdrant
     search_results = search_qdrant(user_question)
-    
-    print('------------------------------')
-    print(f"document Results:{search_results}")
-    print('------------------------------')
 
 
-
-    pdf_file = search_results[0]["metadata"]["document_name"]
-    document = await load_pdf(dir, pdf_file)  
+    if search_results[0]["score"] > 0.5:
+        pdf_file = search_results[0]["metadata"]["document_name"]
+        document = await load_pdf(dir, pdf_file)  
 
     
     # Step 2: Inject the results as context
