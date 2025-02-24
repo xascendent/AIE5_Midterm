@@ -15,6 +15,7 @@ from document_loader import get_pdf_files, chunk_pdf_document, get_pdf_metadata,
 load_dotenv()
 
 COLLECTION_NAME = "qt_document_collection"
+SEARCH_SCORE = 0.5
 dir = "data/pdfs"
 
 # Initialize OpenAI Utility
@@ -22,7 +23,7 @@ utility = UtilityOpenAI()
 embedding_dim = utility.get_embedding_dimension()
 
 # Initialize Qdrant
-qdrant = UtilityQdrant(COLLECTION_NAME, embedding_dim)
+qdrant = UtilityQdrant(COLLECTION_NAME, embedding_dim, SEARCH_SCORE)
 
 
 class LLMToUse(Enum):
@@ -166,7 +167,7 @@ async def run_research_vector_store_node(user_question: str) -> str:
     
     search_results = search_qdrant(user_question)
 
-    if search_results and search_results[0]["score"] > 0.9:
+    if search_results and search_results[0]["score"] > SEARCH_SCORE:
         pdf_file = search_results[0]["metadata"]["document_name"]
         reconstructed_document_title = search_results[0]["metadata"]["title"]
         reconstructed_document_file_name = pdf_file
@@ -242,18 +243,27 @@ async def load_documents(COLLECTION_NAME: str, utility: UtilityOpenAI):
         qdrant.insert_documents(COLLECTION_NAME, vectors, metadata.to_dict())  
 
 
-async def main():
-    print("\n🚀 Ready player one!\n")  
-    COLLECTION_NAME = "qt_document_collection"
-
+async def doc_init():
     # Initialize OpenAI Utility
     utility = UtilityOpenAI()
     embedding_dim = utility.get_embedding_dimension()
+    await load_documents(COLLECTION_NAME, utility) 
+
+async def main():
+    print("\n🚀 Ready player one!\n")  
+    await doc_init()
+
+
+    #COLLECTION_NAME = "qt_document_collection"
+
+    # Initialize OpenAI Utility
+    #utility = UtilityOpenAI()
+    #embedding_dim = utility.get_embedding_dimension()
 
     # Initialize Qdrant
-    qdrant = UtilityQdrant(COLLECTION_NAME, embedding_dim)    
+    #qdrant = UtilityQdrant(COLLECTION_NAME, embedding_dim, SEARCH_SCORE)    
 
-    await load_documents(COLLECTION_NAME, utility)
+    # await load_documents(COLLECTION_NAME, utility) We no longer have to do this because of the cloud storage
 
     query = "What specific therapeutic activities and exercises have been shown to be most effective in resolving symptoms and treating chronic tennis elbow"
 
