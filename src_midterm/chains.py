@@ -251,7 +251,7 @@ async def doc_init():
 
 async def main():
     print("\n🚀 Ready player one!\n")  
-    await doc_init()
+    #await doc_init()
 
 
     #COLLECTION_NAME = "qt_document_collection"
