@@ -14,7 +14,7 @@ load_dotenv()
 class UtilityQdrant:
     def __init__(self, collection_name: str, embedding_dim: int = 1536, hit_score: float = 0.60):
         self.local_store = False
-        self.api_key = os.getenv("QDRANT-CLOUD-API-KEY")
+        self.api_key = os.getenv("QDRANT_CLOUD_API_KEY")
 
         if self.local_store:
             self.client = QdrantClient(":memory:")
