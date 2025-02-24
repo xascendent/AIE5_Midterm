@@ -5,13 +5,26 @@ from utils_openai import UtilityOpenAI
 from templates import MetaDataModel
 from logger import logger
 from typing import List, Optional
+from dotenv import load_dotenv
+import os
+import hashlib
+
+load_dotenv()
 
 class UtilityQdrant:
     def __init__(self, collection_name: str, embedding_dim: int = 1536, hit_score: float = 0.60):
-        self.client = QdrantClient(":memory:")
+        self.local_store = False
+        self.api_key = os.getenv("QDRANT-CLOUD-API-KEY")
+
+        if self.local_store:
+            self.client = QdrantClient(":memory:")
+        else:
+            self.client = QdrantClient("https://40c458f2-24a9-4153-b15b-0addf6a6bbcf.us-east-1-0.aws.cloud.qdrant.io:6333", api_key=self.api_key)  
+            
+
         self.COLLECTION_NAME = collection_name  # "qt_document_collection"
         self.create_collection(self.COLLECTION_NAME, embedding_dim)
-        self.hit_score = hit_score # used for tuning the search results        
+        self.hit_score = hit_score # used for tuning the search results
 
     def create_collection(self, collection_name, embedding_dim):
         """Creates a collection in Qdrant."""
@@ -78,9 +91,13 @@ class UtilityQdrant:
 
         # Create the points
         points = [
-            PointStruct(id=str(uuid.uuid4()), vector=vector, payload=vectored_metadata)
+            PointStruct(
+                id=hashlib.md5(str(vector).encode()).hexdigest(),  # Hash each individual vector
+                vector=vector,
+                payload=vectored_metadata
+            )
             for vector in vectored_data
-        ]
+            ]
 
         # Insert into Qdrant
         self.client.upsert(collection_name=collection_name, points=points)

@@ -158,8 +158,6 @@ final_chain = final_prompt | llm_instance
 format_final_chain = format_final_prompt | llm_instance
 document_not_found_chain = document_not_found_prompt | llm_instance
 
-
-
 async def run_research_vector_store_node(user_question: str) -> str:
     """Runs a research node through the pipeline"""
     reconstructed_document_file_name = ""
