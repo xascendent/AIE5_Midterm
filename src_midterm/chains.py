@@ -103,6 +103,18 @@ format_final_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
+document_not_found_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are a expert in Occupational therapist.  You are being asked a question from another Occupational Therapist and you need think about the information 
+            that was given to you and come up with suggestions. You must provide accurate information.
+            """,
+        ),
+        MessagesPlaceholder(variable_name="messages"),
+    ]
+)
+
 @tool
 def search_qdrant(query: Annotated[str, "query to ask the retrieve information tool"]):
     """Search Qdrant for similar documents."""
@@ -143,19 +155,19 @@ ot_user_chain = ot_user_prompt | llm_instance
 summarization_chain = summarization_prompt | summarization_llm
 final_chain = final_prompt | llm_instance
 format_final_chain = format_final_prompt | llm_instance
+document_not_found_chain = document_not_found_prompt | llm_instance
 
 
-async def run_test_query(user_question: str):
-    """Runs a test query through the pipeline"""
+
+async def run_research_node(user_question: str) -> str:
+    """Runs a research node through the pipeline"""
     reconstructed_document_file_name = ""
     reconstructed_document_title = ""
-
-    # Step 1: Retrieve similar documents from Qdrant
+    summary = None  # Default summary
+    
     search_results = search_qdrant(user_question)
 
-    summary = None  # Default summary
-
-    if search_results and search_results[0]["score"] > 0.5:
+    if search_results and search_results[0]["score"] > 0.9:
         pdf_file = search_results[0]["metadata"]["document_name"]
         reconstructed_document_title = search_results[0]["metadata"]["title"]
         reconstructed_document_file_name = pdf_file
@@ -171,24 +183,43 @@ async def run_test_query(user_question: str):
         # Add the document title to the summary
         summary = f" DOCUMENT_TITLE: {reconstructed_document_title}: {summary}"
         summary = f" DOCUMENT_FILE_NAME: {reconstructed_document_file_name}: {summary}"
+        # Step 3: Inject the results and user query as context
+        context_messages = [{"role": "user", "content": user_question}]
 
-    # Step 3: Inject the results and user query as context
-    context_messages = [{"role": "user", "content": user_question}]
+        if summary:
+            context_messages.insert(0, {"role": "system", "content": f"Summary of relevant document: {summary}"})
 
-    if summary:
-        context_messages.insert(0, {"role": "system", "content": f"Summary of relevant document: {summary}"})
+        response = final_chain.invoke({"messages": context_messages})  # This is an AIMessage object    
+        return response.content
+    else:
+        return "NO DOCUMENT FOUND"
 
-
-    response = final_chain.invoke({"messages": context_messages})  # This is an AIMessage object
-
-    # Step 4: Convert AIMessage to string before formatting
-    formatted_response = format_final_chain.invoke({"messages": [{"role": "system", "content": response.content}]})
-
-    return formatted_response
-
-
-
+        
     
+
+
+async def run_test_query(user_question: str):
+    """Runs a test query through the pipeline"""
+
+    # Step 1: Try to retrieve a relevant document
+    research_response = await run_research_node(user_question)
+
+    if research_response == "NO DOCUMENT FOUND":
+        # Step 2: If no document is found, invoke the fallback response
+        response = document_not_found_chain.invoke(
+            {"messages": [{"role": "user", "content": user_question}]}
+        )
+        final_response = response.content
+    else:
+        # Use the retrieved research response
+        final_response = research_response
+
+    # Step 3: Format the final response
+    formatted_response = format_final_chain.invoke(
+        {"messages": [{"role": "system", "content": final_response}]}
+    )
+
+    return formatted_response    
 
 
 async def load_documents(COLLECTION_NAME: str, utility: UtilityOpenAI):
